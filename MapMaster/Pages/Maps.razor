@@ -1,0 +1,19 @@
+﻿@page "/maps"
+@inject IJSRuntime JSRuntime
+
+<h3>Map Name Goes Here</h3>
+<div id="map" style="height: 720px;width:960px"></div>
+
+@code {
+
+    // TODO: Move all Maps code here and write in c#
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("initialise", null);
+            StateHasChanged();
+        }
+    }
+}
