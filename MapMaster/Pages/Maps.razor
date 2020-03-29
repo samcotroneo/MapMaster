@@ -1,7 +1,107 @@
 ﻿@page "/maps"
+@using System.Text.Json
+@inject HttpClient Http
+@inject IJSRuntime JsRuntime;
 
-<Map Name="Forgotten Realms" />
+@if (selectedMap == null)
+{
+    <p>
+        <em>Loading...</em>
+    </p>
+}
+else
+{
+    <head>
+        <title>@selectedMap.Name</title>
+        <meta name="viewport" content="initial-scale=1.0">
+        <meta charset="utf-8">
+        <style>
+            /* Always set the map height explicitly to define the size of the div
+            * element that contains the map. */
+            #map {
+                height: 720px;
+                width: 960px;
+            }
+        </style>
+    </head>
+
+    <body>
+    <h1>@selectedMap.Name</h1>
+    <div id="map"></div>
+    </body>
+}
 
 @code {
-    // TODO: This page manages the maps.
+
+    private Map selectedMap;
+    private List<Map> maps;
+    private bool rendered;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SetMaps(await Http.GetJsonAsync<List<Map>>("map-data/forgottenRealms.json"));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (selectedMap == null)
+            {
+                rendered = true;
+                return;
+            }
+
+            await InitialiseGoogleMap();
+        }
+    }
+
+    private async Task SetMaps(List<Map> loadedMaps)
+    {
+        maps = loadedMaps;
+        selectedMap = maps.First();
+
+        if (rendered)
+        {
+            await InitialiseGoogleMap();
+        }
+    }
+
+    private async Task InitialiseGoogleMap()
+    {
+        string jsonString = JsonSerializer.Serialize(selectedMap);
+        Console.Write(jsonString);
+        await JsRuntime.InvokeVoidAsync("initialiseApi", jsonString);
+    }
+
+    public class Map
+    {
+        public string Name { get; set; }
+
+        public List<Marker> Markers { get; set; }
+    }
+
+    public class Marker
+    {
+        public string Title { get; }
+
+        public double Latitude { get; }
+
+        public double Longitude { get; }
+
+        public string Description { get; }
+
+        public Marker()
+        {
+        }
+
+        public Marker(string title, double lat, double lng, string description)
+        {
+            Title = title;
+            Latitude = lat;
+            Longitude = lng;
+            Description = description;
+        }
+    }
+
 }
