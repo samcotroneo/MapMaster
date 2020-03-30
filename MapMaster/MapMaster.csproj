@@ -33,6 +33,12 @@
     <TypeScriptCompile Include="JsLib\node_modules\%40types\googlemaps\index.d.ts" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Update="wwwroot\map-data\forgottenRealms.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
     <TypeScriptTarget>ES2015</TypeScriptTarget>
     <TypeScriptJSXEmit>Preserve</TypeScriptJSXEmit>

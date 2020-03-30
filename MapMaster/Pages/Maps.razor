@@ -1,9 +1,11 @@
 ﻿@page "/maps"
 @using System.Text.Json
+@using System.Threading.Tasks
+@using Microsoft.AspNetCore.Components
 @inject HttpClient Http
 @inject IJSRuntime JsRuntime;
 
-@if (selectedMap == null)
+@if (maps == null)
 {
     <p>
         <em>Loading...</em>
@@ -12,7 +14,7 @@
 else
 {
     <head>
-        <title>@selectedMap.Name</title>
+        <title>@maps[0].Name</title>
         <meta name="viewport" content="initial-scale=1.0">
         <meta charset="utf-8">
         <style>
@@ -26,51 +28,22 @@ else
     </head>
 
     <body>
-    <h1>@selectedMap.Name</h1>
+    <h1>@maps[0].Name</h1>
     <div id="map"></div>
     </body>
 }
 
 @code {
 
-    private Map selectedMap;
-    private List<Map> maps;
-    private bool rendered;
+    private Map[] maps;
 
     protected override async Task OnInitializedAsync()
     {
-        await SetMaps(await Http.GetJsonAsync<List<Map>>("map-data/forgottenRealms.json"));
-    }
+        // Load the map json.
+        maps = await Http.GetJsonAsync<Map[]>("map-data/forgottenRealms.json");
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            if (selectedMap == null)
-            {
-                rendered = true;
-                return;
-            }
-
-            await InitialiseGoogleMap();
-        }
-    }
-
-    private async Task SetMaps(List<Map> loadedMaps)
-    {
-        maps = loadedMaps;
-        selectedMap = maps.First();
-
-        if (rendered)
-        {
-            await InitialiseGoogleMap();
-        }
-    }
-
-    private async Task InitialiseGoogleMap()
-    {
-        string jsonString = JsonSerializer.Serialize(selectedMap);
-        Console.Write(jsonString);
+        // Initialise the map API.
+        string jsonString = JsonSerializer.Serialize(maps[0]);
         await JsRuntime.InvokeVoidAsync("initialiseApi", jsonString);
     }
 
@@ -78,30 +51,18 @@ else
     {
         public string Name { get; set; }
 
-        public List<Marker> Markers { get; set; }
+        public Marker[] Markers { get; set; }
     }
 
     public class Marker
     {
-        public string Title { get; }
+        public string Title { get; set; }
 
-        public double Latitude { get; }
+        public double Latitude { get; set; }
 
-        public double Longitude { get; }
+        public double Longitude { get; set; }
 
-        public string Description { get; }
-
-        public Marker()
-        {
-        }
-
-        public Marker(string title, double lat, double lng, string description)
-        {
-            Title = title;
-            Latitude = lat;
-            Longitude = lng;
-            Description = description;
-        }
+        public string Description { get; set; }
     }
 
 }
